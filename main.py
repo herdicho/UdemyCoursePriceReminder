@@ -181,7 +181,8 @@ def getUdemyCoursePrice():
 options = Options()  
 options.add_argument("--headless")
 options.add_argument("--window-size=1280,800")
-driver = webdriver.Chrome(options=options)
+# executable path param is needed if we will run this script using crontab in mac os
+driver = webdriver.Chrome(options=options, executable_path="/usr/local/Caskroom/chromedriver/87.0.4280.20/chromedriver")
 
 getUdemyCoursePrice()
 
