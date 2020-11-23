@@ -51,7 +51,7 @@ element = {
 
 data = {
    "Course" : "Go: The Complete Developer's Guide (Golang)",
-   "MaxPrice" : 120000,
+   "MaxPrice" : 150000,
    "CoursePrice" : 0, # next will be overwritten with the course price
    "CourseLanguage" : "English",
 }
