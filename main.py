@@ -3,6 +3,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.chrome.options import Options 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -40,17 +41,18 @@ credential = {
 }
 
 element = {
-   "LoginButtonHomePage" : "/html/body/div[1]/div[1]/div[2]/div[5]",
-   "EmailField" : "email--1",
-   "PasswordField" : "id_password",
-   "LoginButtonLoginPage" : "submit-id-submit",
-   "CourseSearchField" : "//input[@placeholder='Search for anything']",
+   "LoginButtonHomePage" : "//a[@data-purpose='header-login']",
+   "EmailField" : "//input[@name='email'][@type='email']",
+   "PasswordField" : "//input[@name='password'][@type='password']",
+   "LoginButtonLoginPage" : "/html/body/div[1]/div[2]/div[1]/div[3]/form/div[2]/div/input",
+   "CourseSearchField" : "/html/body/div[2]/div[1]/div[3]/div[2]/form/input[2]",
 }
 
 data = {
    "Course" : "Go: The Complete Developer's Guide (Golang)",
    "MaxPrice" : 150000,
    "CoursePrice" : 0, # next will be overwritten with the course price
+   "CourseLanguage" : "English",
 }
 
 def sendEmail():
@@ -83,45 +85,76 @@ def sendEmail():
    except:
       print("Fail send email")
 
-
-def getUdemyCoursePrice():
-   # open udemy webpage
-   driver.get("http://udemy.com")
-
-   # login
-   loginButtonHomePageElement = getElement(By.XPATH, element.get("LoginButtonHomePage"), 10)
-   loginButtonHomePageElement.click()
-   emailFieldElement = getElement(By.ID, element.get("EmailField"), 10)
+def loginUdemyWebpage():
+   loginButtonHomePageElement = getElement(By.XPATH, element.get("LoginButtonHomePage"), 30)
+   time.sleep(7)
+   driver.save_screenshot('captchagatel.png')
+   driver.execute_script("arguments[0].click();", loginButtonHomePageElement)
+   driver.save_screenshot('captchafuk.png')
+   emailFieldElement = getElement(By.XPATH, element.get("EmailField"), 30)
    emailFieldElement.send_keys(credential.get("EmailUdemy"))
-   passwordFieldElement = getElement(By.ID, element.get("PasswordField"), 10)
+   passwordFieldElement = getElement(By.XPATH, element.get("PasswordField"), 30)
    passwordFieldElement.send_keys(credential.get("PasswordUdemy"))
-   loginButtonLoginPageElement = getElement(By.ID, element.get("LoginButtonLoginPage"), 10)
+   loginButtonLoginPageElement = getElement(By.XPATH, element.get("LoginButtonLoginPage"), 30)
    loginButtonLoginPageElement.click()
 
-   # search course
-   courseSearchFieldElement = getElement(By.XPATH, element.get("CourseSearchField"), 10)
+def searchCourse():
+   courseSearchFieldElement = getElement(By.XPATH, element.get("CourseSearchField"), 30)
    courseSearchFieldElement.send_keys(data.get("Course"))
    courseSearchFieldElement.send_keys(Keys.RETURN)
+   time.sleep(5)
+
+def filterCourseLanguage():
+   # filter course by language of the course (if just input course name, sometimes we cant find the desired course)
+   showMoreLanguage = driver.find_element_by_xpath("/html/body/div[2]/div[3]/div/div/div[2]/div/div[2]/div/div[1]/form/div/div[2]/div[2]/div/div/button/span/span[1]")
+   showMoreLanguage.click()
+   listLanguage = driver.find_elements_by_xpath("/html/body/div[2]/div[3]/div/div/div[2]/div[1]/div[2]/div/div[1]/form/div/div[2]/div[2]/div/div/div/div/fieldset/label")
+   
+   indeks = 0
+   langIndeks = -1
+   for i in listLanguage:
+      if (data.get("CourseLanguage").lower() in i.text.lower()):
+         langIndeks = indeks
+         break
+
+      indeks += 1
+
+   languageFilter = driver.find_element_by_xpath("/html/body/div[2]/div[3]/div/div/div[2]/div[1]/div[2]/div/div[1]/form/div/div[2]/div[2]/div/div/div/div/fieldset/label["+str(langIndeks+1)+"]")
+   languageFilter.click()
 
    time.sleep(3)
 
+def getCoursePrice():
    # search for first top 15 course according to the desired course and get course price then send email if price less than desired price
    for i in range (1, 15):
       try:
          title = getElement(By.XPATH, "/html/body/div[2]/div[3]/div/div/div[2]/div[1]/div[2]/div/div[2]/div[2]/div["+str(i)+"]/a/div/div[2]/div[1]", 5).text
          if (title == data.get("Course")):
             price = getElement(By.XPATH, "/html/body/div[2]/div[3]/div/div/div[2]/div[1]/div[2]/div/div[2]/div[2]/div["+str(i)+"]/a/div/div[2]/div[5]/div[1]/span[2]/span", 5).text
-            priceInteger = int(price.replace("Rp", "").replace(",", ""))
+            priceInteger = int(price.replace("Rp", "").replace(".","").replace(",",""))
             if (priceInteger < data.get("MaxPrice")):
                data["CoursePrice"] = price
                sendEmail()
             break
       except:
          continue
+
+def getUdemyCoursePrice():
+   # open udemy webpage
+   driver.get("http://udemy.com")
    
+   # loginUdemyWebpage() (Dont need login)
+   searchCourse()
+   filterCourseLanguage()
+   getCoursePrice()
+
    driver.close()
 
 #initiate browser for automation
-driver = webdriver.Chrome()
+options = Options()  
+options.add_argument("--headless")
+options.add_argument("--window-size=1280,800")
+driver = webdriver.Chrome(options=options)
+
 getUdemyCoursePrice()
 
