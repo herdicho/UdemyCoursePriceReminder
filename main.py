@@ -56,17 +56,29 @@ data = {
    "CourseLanguage" : "English",
 }
 
-def sendEmail():
+def sendEmail(isErrorMessage, error = ""):
    msg = MIMEMultipart()
    msg['From'] = credential.get("EmailSender")
    msg['To'] = credential.get("EmailReceiver")
-   msg['Subject'] = "UDEMY COURSE PRICE REMINDER"
- 
-   body = '''\
-   Course "''' + data.get("Course") + '''" Regone : ''' + data.get("CoursePrice") + '''
-   '''
 
-   '''
+   if (isErrorMessage):
+      subjectContent = "(Language Not Found)" if error == "languageNotFound" else "(Course Not Found)"
+      msg['Subject'] = "UDEMY COURSE PRICE REMINDER ERROR "+ subjectContent + ""
+   else:   
+      msg['Subject'] = "UDEMY COURSE PRICE REMINDER"
+   
+   if (isErrorMessage):
+      bodyContent = "Language Not Found" if error == "languageNotFound" else "Course Not Found"
+      body = '''\
+      ''' + bodyContent + '''   
+      Please check the name of course or language
+      '''
+   else:
+      body = '''\
+      Course "''' + data.get("Course") + '''" Regone : ''' + data.get("CoursePrice") + '''
+      '''
+
+   ''' (maybe for the purpose of next feature)
    for key in credential:
       body = key + " : " + credential[key] + "\n"
       msg.attach(MIMEText(body, 'plain'))
@@ -75,44 +87,16 @@ def sendEmail():
    msg.attach(MIMEText(body, 'plain'))
    text = msg.as_string()
 
-   print("Try to send email")
+   print("Try to send email") if (not isErrorMessage) else print("Try to send ERROR email")
    try:
       server = smtplib.SMTP('smtp.gmail.com', 587)
       server.starttls()
       server.login(credential.get("EmailSender"), credential.get("PasswordSender"))
       server.sendmail(credential.get("EmailSender"), credential.get("EmailReceiver"), text)
       server.quit()
-      print("Success send email")
+      print("Success send email") if (not isErrorMessage) else print("Success send ERROR email")
    except:
-      print("Fail send email")
-
-def sendErrorEmail(error):
-   subjectContent = "(Language Not Found)" if error == "languageNotFound" else "(Course Not Found)"
-   bodyContent = "Language Not Found" if error == "languageNotFound" else "Course Not Found"
-
-   msg = MIMEMultipart()
-   msg['From'] = credential.get("EmailSender")
-   msg['To'] = credential.get("EmailReceiver")
-   msg['Subject'] = "UDEMY COURSE PRICE REMINDER ERROR "+ subjectContent + ""
- 
-   body = '''\
-   ''' + bodyContent + '''   
-   Please check the name of course or language
-   '''
-
-   msg.attach(MIMEText(body, 'plain'))
-   text = msg.as_string()
-
-   print("Try to send error email")
-   try:
-      server = smtplib.SMTP('smtp.gmail.com', 587)
-      server.starttls()
-      server.login(credential.get("EmailSender"), credential.get("PasswordSender"))
-      server.sendmail(credential.get("EmailSender"), credential.get("EmailReceiver"), text)
-      server.quit()
-      print("Success send error email")
-   except:
-      print("Fail send error email")
+      print("Fail send email") if (not isErrorMessage) else print("Fail send ERROR email")
 
 def loginUdemyWebpage():
    loginButtonHomePageElement = getElement(By.XPATH, element.get("LoginButtonHomePage"), 30)
@@ -155,7 +139,7 @@ def filterCourseLanguage():
       languageFilter = driver.find_element_by_xpath("/html/body/div[2]/div[3]/div/div/div[2]/div[1]/div[2]/div/div[1]/form/div/div[2]/div[2]/div/div/div/div/fieldset/label["+str(langIndeks+1)+"]")
       languageFilter.click()
    else:
-      sendErrorEmail("languageNotFound")
+      sendEmail(True, "languageNotFound")
       sys.exit()
       
    time.sleep(3)
@@ -173,13 +157,13 @@ def getCoursePrice():
             priceInteger = int(price.replace("Rp", "").replace(".","").replace(",",""))
             if (priceInteger < data.get("MaxPrice")):
                data["CoursePrice"] = price
-               sendEmail()
+               sendEmail(False)
             break
       except:
          continue
    
    if (not isCourseFound):
-      sendErrorEmail("courseNotFound")
+      sendEmail(True, "courseNotFound")
       sys.exit()
 
 def getUdemyCoursePrice():
