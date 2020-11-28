@@ -46,12 +46,12 @@ element = {
    "EmailField" : "//input[@name='email'][@type='email']",
    "PasswordField" : "//input[@name='password'][@type='password']",
    "LoginButtonLoginPage" : "/html/body/div[1]/div[2]/div[1]/div[3]/form/div[2]/div/input",
-   "CourseSearchField" : "/html/body/div[2]/div[1]/div[3]/div[2]/form/input[2]",
+   "CourseSearchField" : "/html/body/div[2]/div[1]/div[2]/div[2]/form/input[2]",
 }
 
 data = {
    "Course" : "Go: The Complete Developer's Guide (Golang)",
-   "MaxPrice" : 150000,
+   "MaxPrice" : 160000,
    "CoursePrice" : 0, # next will be overwritten with the course price
    "CourseLanguage" : "English",
 }
@@ -170,7 +170,7 @@ def getUdemyCoursePrice():
    # open udemy webpage
    driver.get("http://udemy.com")
    
-   # loginUdemyWebpage() (Dont need login)
+   #loginUdemyWebpage() (Dont need login)
    searchCourse()
    filterCourseLanguage()
    getCoursePrice()
