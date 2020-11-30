@@ -46,7 +46,8 @@ element = {
    "EmailField" : "//input[@name='email'][@type='email']",
    "PasswordField" : "//input[@name='password'][@type='password']",
    "LoginButtonLoginPage" : "/html/body/div[1]/div[2]/div[1]/div[3]/form/div[2]/div/input",
-   "CourseSearchField" : "/html/body/div[2]/div[1]/div[2]/div[2]/form/input[2]",
+   "CourseSearchField1" : "/html/body/div[2]/div[1]/div[2]/div[2]/form/input[2]",
+   "CourseSearchField2" : "/html/body/div[2]/div[1]/div[3]/div[2]/form/input[2]",
 }
 
 data = {
@@ -112,7 +113,10 @@ def loginUdemyWebpage():
    loginButtonLoginPageElement.click()
 
 def searchCourse():
-   courseSearchFieldElement = getElement(By.XPATH, element.get("CourseSearchField"), 30)
+   try:
+      courseSearchFieldElement = getElement(By.XPATH, element.get("CourseSearchField1"), 30)
+   except:
+      courseSearchFieldElement = getElement(By.XPATH, element.get("CourseSearchField2"), 30)
    courseSearchFieldElement.send_keys(data.get("Course"))
    courseSearchFieldElement.send_keys(Keys.RETURN)
    time.sleep(5)
