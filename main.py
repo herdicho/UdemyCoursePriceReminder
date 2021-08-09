@@ -102,9 +102,6 @@ def sendEmail(isErrorMessage, error = ""):
 def loginUdemyWebpage():
    loginButtonHomePageElement = getElement(By.XPATH, element.get("LoginButtonHomePage"), 30)
    time.sleep(7)
-   driver.save_screenshot('captchagatel.png')
-   driver.execute_script("arguments[0].click();", loginButtonHomePageElement)
-   driver.save_screenshot('captchafuk.png')
    emailFieldElement = getElement(By.XPATH, element.get("EmailField"), 30)
    emailFieldElement.send_keys(credential.get("EmailUdemy"))
    passwordFieldElement = getElement(By.XPATH, element.get("PasswordField"), 30)
